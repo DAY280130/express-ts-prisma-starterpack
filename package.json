@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "npx tsx ./src/index.ts",
     "dev:watch": "npx tsx watch ./src/index.ts",
-    "prod": "node ./dist/src/index.js",
+    "start": "node ./dist/src/index.js",
     "build": "ttsc -p tsconfig.prod.json",
     "build:clean": "npx rimraf ./dist && ttsc -p tsconfig.prod.json",
     "clean": "npx rimraf ./dist"
