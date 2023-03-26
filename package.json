@@ -8,10 +8,12 @@
     "dev": "npx tsx ./src/index.ts",
     "dev:watch": "npx tsx watch ./src/index.ts",
     "start": "node ./dist/index.js",
-    "build": "npm run clean && npm run build:local && cp .env.example ./dist/.env.example",
-    "build:local": "cp package.prod.json ./dist/package.json && ttsc -p tsconfig.prod.json",
-    "build:powershell:local": "@powershell cp package.prod.json ./dist/package.json && ttsc -p tsconfig.prod.json",
-    "clean": "npx rimraf ./dist && mkdir dist"
+    "build": "npm run build:local && npm run copy",
+    "build:powershell": "npm run build:local && npm run copy:powershell",
+    "build:local": "ttsc -p tsconfig.prod.json",
+    "copy": "cp package.prod.json ./dist/package.json && cp .env.example ./dist/.env.example",
+    "copy:powershell": "@powershell cp package.prod.json ./dist/package.json && @powershell cp .env.example ./dist/.env.example",
+    "clean": "npx rimraf ./dist"
   },
   "author": "Dimas Adnan",
   "license": "ISC",
