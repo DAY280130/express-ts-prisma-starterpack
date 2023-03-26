@@ -2,12 +2,12 @@
   "name": "express-ts-prisma-starterpack",
   "version": "0.0.1",
   "description": "dimas's express, ts, and prisma project starterpack",
-  "main": "./src/index.js",
+  "main": "./src/index.ts",
   "type": "module",
   "scripts": {
     "dev": "npx tsx ./src/index.ts",
     "dev:watch": "npx tsx watch ./src/index.ts",
-    "start": "node ./src/index.js",
+    "start": "node ./dist/src/index.js",
     "build": "ttsc -p tsconfig.prod.json",
     "build:clean": "npx rimraf ./dist && ttsc -p tsconfig.prod.json",
     "clean": "npx rimraf ./dist"
