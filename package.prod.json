@@ -5,7 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "node -r dotenv-safe/config index.js"
+    "start": "node index.js"
   },
   "author": "Dimas Adnan",
   "license": "ISC",
