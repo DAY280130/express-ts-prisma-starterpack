@@ -8,8 +8,8 @@
     "dev": "npx tsx ./src/index.ts",
     "dev:watch": "npx tsx watch ./src/index.ts",
     "start": "node ./dist/index.js",
-    "build": "ttsc -p tsconfig.prod.json",
-    "build:clean": "npx rimraf ./dist && ttsc -p tsconfig.prod.json",
+    "build": "cp package.prod.json ./dist/package.json && ttsc -p tsconfig.prod.json",
+    "build:clean": "npm run clean && npm run build",
     "clean": "npx rimraf ./dist"
   },
   "author": "Dimas Adnan",
