@@ -2,7 +2,7 @@
   "name": "express-ts-prisma-starterpack",
   "version": "0.0.1",
   "description": "dimas's express, ts, and prisma project starterpack",
-  "main": "dist/src/index.js",
+  "main": "./dist/src/index.js",
   "type": "module",
   "scripts": {
     "dev": "npx tsx ./src/index.ts",
