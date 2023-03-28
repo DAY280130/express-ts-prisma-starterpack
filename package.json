@@ -8,11 +8,10 @@
     "dev": "npx tsx ./src/index.ts",
     "dev:watch": "npx tsx watch ./src/index.ts",
     "build:local": "ttsc -p tsconfig.prod.json",
-    "generate-package": "touch ./dist/package.json && echo {\"type\": \"module\"} > ./dist/package.json && node ./dist/PackageJSONGenerator.js",
-    "copy": "cp .env.example ./dist/.env.example && cp -r prisma ./dist/prisma",
+    "copy": "cp .env.example ./dist/.env.example && cp -r prisma ./dist/prisma && cd ./dist && node PackageJSONCopier.js && cd ..",
     "clean": "npx rimraf ./dist",
     "build": "npm run build:local",
-    "postbuild": "npm run generate-package && npm run copy && cd ./dist && npm install && npx prisma generate && cd ..",
+    "postbuild": "npm run copy && cd ./dist && npm install && npx prisma generate && cd ..",
     "start": "node ./dist/index.js"
   },
   "author": "Dimas Adnan",

@@ -25,4 +25,4 @@ delete parsedPackageJSON.devDependencies;
 
 parsedPackageJSON.scripts = { start: 'node index.js' };
 
-fs.writeFileSync(path.join(__dirname, './package.json'), JSON.stringify(parsedPackageJSON));
+fs.appendFileSync(path.join(__dirname, './package.json'), JSON.stringify(parsedPackageJSON));
