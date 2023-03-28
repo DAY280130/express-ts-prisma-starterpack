@@ -1,7 +1,8 @@
 import { todoHandler } from '@src/handlers/TodoHandler.js';
-import express from 'express';
+import { Router } from 'express';
 
-export const todoRouter = express.Router();
+export const todoRouter = Router();
 
 const BASE_ROUTE = '/todo';
 todoRouter.get(BASE_ROUTE, todoHandler.getAll);
+todoRouter.post(BASE_ROUTE, todoHandler.post);
