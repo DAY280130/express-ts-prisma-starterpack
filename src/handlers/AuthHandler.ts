@@ -20,6 +20,7 @@ const checkCsrfToken: RequestHandler = (req, res) => {
   if (!hashedCsrfToken) {
     return res.status(403).json({ message: 'csrf cookie not found' });
   }
+
   const csrfToken = req.headers['x-csrf-token'] as string;
   if (!csrfToken) {
     return res.status(403).json({ message: 'csrf header not found' });
