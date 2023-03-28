@@ -18,10 +18,11 @@ type PackageJSON = {
 };
 
 const packageJSON = fs.readFileSync(path.join(__dirname, './../package.json'));
-// const packageJSON = fs.readFileSync('./../package.json');
 
 const parsedPackageJSON = JSON.parse(packageJSON.toString()) as PackageJSON;
 
 delete parsedPackageJSON.devDependencies;
 
-fs.writeFileSync('./package.json', JSON.stringify(parsedPackageJSON));
+parsedPackageJSON.scripts = { start: 'node index.js' };
+
+fs.writeFileSync(path.join(__dirname, './package.json'), JSON.stringify(parsedPackageJSON));
