@@ -30,6 +30,12 @@ const checkCsrfToken: RequestHandler = (req, res) => {
     return res.status(403).json({ message: 'csrf key not found' });
   }
 
+  const expectedHashedCsrfToken = createHash('sha256').update(`${csrfKey}${csrfToken}`).digest('hex');
+
+  if (expectedHashedCsrfToken !== hashedCsrfToken) {
+    return res.status(403).json({ message: 'csrf token not match' });
+  }
+
   return res.status(200).json({
     message: 'CSRF token verified',
     csrfKey,
