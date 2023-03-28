@@ -6,6 +6,7 @@ import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import { todoRouter } from '@src/routers/TodoRouter.js';
 import { cookieConfig } from '@src/config/CookieConfig.js';
+import { authRouter } from '@src/routers/AuthRoutes.js';
 
 // create express instance
 const app = express();
@@ -20,6 +21,7 @@ app.use(compression()); // compresses request and response
 
 // routers
 app.use(todoRouter);
+app.use(authRouter);
 app.get('/', (req, res) => {
   const detectedCookie = req.signedCookies['test-cookie'];
   res.cookie('test-cookie', 'secret cookie value', cookieConfig);
