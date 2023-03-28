@@ -11,7 +11,7 @@
     "copy": "cp .env.example ./dist/.env.example && cp -r prisma ./dist/prisma && node src/PackageJSONCopier.js",
     "clean": "npx rimraf ./dist",
     "build": "npm run build:local",
-    "postbuild": "npm run copy && cd ./dist && npm install && npx prisma generate && cd ..",
+    "postbuild": "npx rimraf ./dist/package.json && npm run copy && cd ./dist && npm install && npx prisma generate && cd ..",
     "start": "node ./dist/index.js"
   },
   "author": "Dimas Adnan",
