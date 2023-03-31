@@ -7,11 +7,8 @@
   "scripts": {
     "dev": "npx tsx ./src/index.ts",
     "dev:watch": "npx tsx watch ./src/index.ts",
-    "build:local": "ttsc -p tsconfig.prod.json",
-    "copy": "cp .env.example ./dist/.env.example && cp -r prisma ./dist/prisma && node src/PackageJSONCopier.js",
+    "build": "ttsc -p tsconfig.prod.json",
     "clean": "npx rimraf ./dist",
-    "build": "npm run build:local",
-    "postbuild": "npx rimraf ./dist/package.json && npm run copy && cd ./dist && npm install && npx prisma generate && cd ..",
     "start": "node ./dist/index.js"
   },
   "author": "Dimas Adnan",
