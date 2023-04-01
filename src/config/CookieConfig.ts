@@ -5,7 +5,7 @@ export const cookieConfig: CookieOptions = {
   path: '/',
   sameSite: 'lax',
   signed: true,
-  secure: true,
+  secure: false,
 };
 
 export const csrfCookieName = `__Host-${process.env.DOMAIN || 'api.com'}.x-csrf-token`;
