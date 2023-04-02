@@ -1,45 +1,65 @@
-import { memcached, memcachedDefault } from '@src/db/MemcachedClientInstance.js';
+import { MemcachedMethodError, memcached, memcachedDefault } from '@src/db/MemcachedClientInstance.js';
 
 try {
   const setResult = await memcached.set('test', 'test value', 5);
   console.log('🚀 > setResult:', setResult.message);
 } catch (err) {
-  console.log('🚀 > err:', err);
+  if (err instanceof MemcachedMethodError) {
+    console.log('🚀 > setResult err:', err);
+  } else {
+    console.log('🚀 > err:', err);
+  }
 }
 
 setTimeout(async () => {
-  const getResult = await memcached.get('test');
-  if (getResult.status === 'success') {
+  try {
+    const getResult = await memcached.get('test');
     console.log('🚀 > setTimeout > getResult[1000 ms]:', getResult.result);
-  } else {
-    console.log('🚀 > setTimeout > getResult[1000 ms]:', getResult.error);
+  } catch (err) {
+    if (err instanceof MemcachedMethodError) {
+      console.log('🚀 > setTimeout > getResult err[1000 ms]:', err);
+    } else {
+      console.log('🚀 > setTimeout > err[1000 ms]:', err);
+    }
   }
 }, 1000);
 
 setTimeout(async () => {
-  const getResult = await memcached.get('test');
-  if (getResult.status === 'success') {
+  try {
+    const getResult = await memcached.get('test');
     console.log('🚀 > setTimeout > getResult[3000 ms]:', getResult.result);
-  } else {
-    console.log('🚀 > setTimeout > getResult[3000 ms]:', getResult.error);
+  } catch (err) {
+    if (err instanceof MemcachedMethodError) {
+      console.log('🚀 > setTimeout > getResult err[3000 ms]:', err);
+    } else {
+      console.log('🚀 > setTimeout > err[3000 ms]:', err);
+    }
   }
 }, 3000);
 
-// setTimeout(async () => {
-//   const touchResult = await memcached.touch('test', 5);
-//   if (touchResult.status === 'success') {
-//     console.log('🚀 > setTimeout > touchResult[3500 ms]:', touchResult.message);
-//   } else {
-//     console.log('🚀 > setTimeout > touchResult[3500 ms]:', touchResult.error);
-//   }
-// }, 3500);
+setTimeout(async () => {
+  try {
+    const touchResult = await memcached.touch('test', 5);
+    console.log('🚀 > setTimeout > touchResult[3500 ms]:', touchResult.message);
+  } catch (err) {
+    if (err instanceof MemcachedMethodError) {
+      console.log('🚀 > setTimeout > touchResult err[3500 ms]:', err);
+    } else {
+      console.log('🚀 > setTimeout > err[3500 ms]:', err);
+    }
+  }
+}, 3500);
 
 setTimeout(async () => {
-  const getResult = await memcached.get('test');
-  if (getResult.status === 'success') {
+  try {
+    const getResult = await memcached.get('test');
     console.log('🚀 > setTimeout > getResult[5000 ms]:', getResult.result);
-  } else {
-    console.log('🚀 > setTimeout > getResult[5000 ms]:', getResult.error);
+  } catch (err) {
+    if (err instanceof MemcachedMethodError) {
+      console.log('🚀 > setTimeout > getResult err[5000 ms]:', err);
+    } else {
+      console.log('🚀 > setTimeout > err[5000 ms]:', err);
+    }
   }
 }, 5000);
 

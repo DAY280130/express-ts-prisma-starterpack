@@ -25,7 +25,7 @@ const set = async (key: string, value: string | Buffer, lifetime: number) =>
         reject(new MemcachedMethodError('internal error', err));
       } else {
         resolve({
-          message: `cache with key ${key} set`,
+          message: `cache with key "${key}" set`,
           result,
         });
       }
@@ -55,7 +55,7 @@ const touch = async (key: string, lifetime: number) =>
         reject(new MemcachedMethodError('internal error', err));
       } else {
         resolve({
-          message: `key ${key} prolonged for ${lifetime} seconds`,
+          message: `key "${key}" prolonged for ${lifetime} seconds`,
         });
       }
     });
@@ -68,7 +68,7 @@ const del = async (key: string) =>
         reject(new MemcachedMethodError('internal error', err));
       } else {
         resolve({
-          message: `cache with key ${key} deleted`,
+          message: `cache with key "${key}" deleted`,
           result,
         });
       }
