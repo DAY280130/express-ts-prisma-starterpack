@@ -3,6 +3,10 @@ import Memcached from 'memcached';
 export const memcachedDefault = new Memcached('localhost:11211', {
   maxExpiration: 8 * 24 * 60 * 60, // 8 days
   reconnect: 1000,
+  retries: 0,
+  failures: 1,
+  timeout: 1000,
+  retry: 1000,
 });
 
 export class MemcachedMethodError extends Error {

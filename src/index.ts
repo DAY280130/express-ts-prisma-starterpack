@@ -4,9 +4,9 @@ import compression from 'compression';
 import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
-import { todoRouter } from '@src/routers/TodoRouter.js';
+import { todoRouters } from '@src/routers/TodoRouters.js';
 import { cookieConfig } from '@src/config/CookieConfig.js';
-import { authRouter } from '@src/routers/AuthRoutes.js';
+import { authRouters } from '@src/routers/AuthRouters.js';
 
 // create express instance
 const app = express();
@@ -20,8 +20,8 @@ app.use(express.json()); // parses json request body
 app.use(compression()); // compresses request and response
 
 // routers
-app.use(todoRouter);
-app.use(authRouter);
+app.use(todoRouters);
+app.use(authRouters);
 app.get('/', (req, res) => {
   const detectedCookie = req.signedCookies['test-cookie'];
   res.cookie('test-cookie', 'secret cookie value', cookieConfig);

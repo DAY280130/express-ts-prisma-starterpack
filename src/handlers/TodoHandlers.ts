@@ -30,4 +30,4 @@ const post: RequestHandler = async (req, res) => {
   });
 };
 
-export const todoHandler = { getAll, post };
+export const todoHandlers = { getAll, post };
