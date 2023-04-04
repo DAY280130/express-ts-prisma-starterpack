@@ -1,4 +1,4 @@
-import { csrfCookieName } from '@src/configs/CookieConfig.js';
+import { csrfCookieName } from '@src/configs/CookieConfigs.js';
 import { MemcachedMethodError, memcached } from '@src/helpers/MemcachedHelpers.js';
 import { ExpressMiddleware } from '@src/helpers/MiddlewareHelpers.js';
 import { createHash } from 'crypto';

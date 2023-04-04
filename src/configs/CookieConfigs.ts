@@ -13,3 +13,5 @@ export const csrfCookieName = `${cookieConfig.secure ? '__Host-' : ''}${process.
 export const refreshCookieName = `${cookieConfig.secure ? '__Host-' : ''}${
   process.env.DOMAIN || 'api.com'
 }.x-refresh-token`;
+
+export const COOKIE_SECRET = process.env.COOKIE_SECRET ?? 'super secret cookie';

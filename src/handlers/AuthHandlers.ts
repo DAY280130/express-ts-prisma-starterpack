@@ -1,5 +1,5 @@
 import { Prisma } from '@prisma/client';
-import { cookieConfig, csrfCookieName } from '@src/configs/CookieConfig.js';
+import { cookieConfig, csrfCookieName } from '@src/configs/CookieConfigs.js';
 import { MemcachedMethodError, memcached } from '@src/helpers/MemcachedHelpers.js';
 import { prisma, isPeculiarPrismaError } from '@src/helpers/PrismaHelpers.js';
 import { ErrorResponse, SuccessResponse, logError } from '@src/helpers/HandlerHelpers.js';

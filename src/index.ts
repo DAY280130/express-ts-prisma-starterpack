@@ -5,7 +5,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import { todoRouters } from '@src/routers/TodoRouters.js';
-import { cookieConfig } from '@src/configs/CookieConfig.js';
+import { COOKIE_SECRET, cookieConfig } from '@src/configs/CookieConfigs.js';
 import { authRouters } from '@src/routers/AuthRouters.js';
 
 // create express instance
@@ -14,7 +14,7 @@ const app = express();
 // middlewares
 app.use(cors()); // enables cors
 app.use(helmet()); // use protection :)
-app.use(cookieParser(process.env.COOKIE_SECRET ?? 'super secret cookie'));
+app.use(cookieParser(COOKIE_SECRET));
 app.use(express.urlencoded({ extended: true })); // parses urlencoded request body
 app.use(express.json()); // parses json request body
 app.use(compression()); // compresses request and response
