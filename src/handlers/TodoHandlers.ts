@@ -1,4 +1,4 @@
-import { prisma } from '@src/db/PrismaClientInstance.js';
+import { prisma } from '@src/helpers/PrismaHelpers.js';
 import { RequestHandler } from 'express';
 import * as z from 'zod';
 

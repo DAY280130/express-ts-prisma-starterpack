@@ -5,7 +5,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import { todoRouters } from '@src/routers/TodoRouters.js';
-import { cookieConfig } from '@src/config/CookieConfig.js';
+import { cookieConfig } from '@src/configs/CookieConfig.js';
 import { authRouters } from '@src/routers/AuthRouters.js';
 
 // create express instance

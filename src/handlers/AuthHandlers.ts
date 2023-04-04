@@ -1,8 +1,8 @@
 import { Prisma } from '@prisma/client';
-import { cookieConfig, csrfCookieName } from '@src/config/CookieConfig.js';
-import { MemcachedMethodError, memcached } from '@src/db/MemcachedClientInstance.js';
-import { prisma, isPeculiarPrismaError } from '@src/db/PrismaClientInstance.js';
-import { ErrorResponse, SuccessResponse, logError } from '@src/handlers/helper.js';
+import { cookieConfig, csrfCookieName } from '@src/configs/CookieConfig.js';
+import { MemcachedMethodError, memcached } from '@src/helpers/MemcachedHelpers.js';
+import { prisma, isPeculiarPrismaError } from '@src/helpers/PrismaHelpers.js';
+import { ErrorResponse, SuccessResponse, logError } from '@src/helpers/HandlerHelpers.js';
 import { BinaryLike, createHash, randomBytes, scrypt } from 'crypto';
 import { RequestHandler } from 'express';
 import * as z from 'zod';
