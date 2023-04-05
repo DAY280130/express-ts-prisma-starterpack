@@ -5,26 +5,36 @@ import {
   refreshTokenConfig,
   verifyConfig,
 } from '@src/configs/JwtConfigs.js';
-import jwt, { SignOptions } from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 
-const sign = async (tokenType: 'access token' | 'refresh token', initialPayload: JWTPayload) => {
-  let config: SignOptions;
+const sign = async <T extends 'access token' | 'refresh token'>(
+  tokenType: T,
+  initialPayload: JWTPayload,
+  csrfToken: T extends 'access token' ? string : undefined
+) => {
   if (tokenType === 'access token') {
-    config = accessTokenConfig;
-  } else if (tokenType === 'refresh token') {
-    config = refreshTokenConfig;
-  } else {
-    config = {};
-  }
-  return new Promise<string>((resolve, reject) => {
-    jwt.sign(initialPayload, JWT_SECRET, config, (error, token) => {
-      if (error) {
-        reject(error);
-      } else {
-        resolve(token ?? 'error');
-      }
+    const config = accessTokenConfig;
+    return new Promise<string>((resolve, reject) => {
+      jwt.sign(initialPayload, `${JWT_SECRET}${csrfToken}`, config, (error, token) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(token ?? 'error');
+        }
+      });
     });
-  });
+  } else if (tokenType === 'refresh token') {
+    const config = refreshTokenConfig;
+    return new Promise<string>((resolve, reject) => {
+      jwt.sign(initialPayload, `${JWT_SECRET}`, config, (error, token) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(token ?? 'error');
+        }
+      });
+    });
+  }
 };
 
 const verify = async (token: string) =>
