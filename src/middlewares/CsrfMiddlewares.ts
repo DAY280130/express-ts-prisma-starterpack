@@ -33,7 +33,7 @@ export const checkAnonymousCsrfToken: ExpressMiddleware = async (req, res, next)
 
   // prolong csrf key cache expire time
   try {
-    await memcached.touch(csrfToken, 300);
+    await memcached.touch(csrfToken, 5 * 60);
   } catch (error) {
     if (error instanceof MemcachedMethodError) {
       console.log({ message: 'memcached error', error });

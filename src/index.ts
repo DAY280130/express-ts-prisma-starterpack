@@ -11,7 +11,7 @@ import { authRouters } from '@src/routers/AuthRouters.js';
 // create express instance
 const app = express();
 
-// middlewares
+// global middlewares
 app.use(cors()); // enables cors
 app.use(helmet()); // use protection :)
 app.use(cookieParser(COOKIE_SECRET));

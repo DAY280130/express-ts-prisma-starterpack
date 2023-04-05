@@ -46,6 +46,10 @@ const sign = async <T extends signParams['tokenType']>(
         }
       });
     });
+  } else {
+    return new Promise<string>((_resolve, reject) => {
+      reject('token type not supplied');
+    });
   }
 };
 
