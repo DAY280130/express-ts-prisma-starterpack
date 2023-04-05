@@ -7,12 +7,24 @@ import {
 } from '@src/configs/JwtConfigs.js';
 import jwt from 'jsonwebtoken';
 
-const sign = async <T extends 'access token' | 'refresh token'>(
-  tokenType: T,
-  initialPayload: JWTPayload,
-  csrfToken: T extends 'access token' ? string : undefined
+type signParams =
+  | {
+      tokenType: 'ACCESS_TOKEN';
+      initialPayload: JWTPayload;
+      csrfToken: string;
+    }
+  | {
+      tokenType: 'REFRESH_TOKEN';
+      initialPayload: JWTPayload;
+    };
+
+const sign = async <T extends signParams['tokenType']>(
+  ...args: Extract<signParams, { tokenType: T }> extends { csrfToken: string }
+    ? [tokenType: T, initialPayload: JWTPayload, csrfToken: string]
+    : [tokenType: T, initialPayload: JWTPayload]
 ) => {
-  if (tokenType === 'access token') {
+  const [tokenType, initialPayload, csrfToken] = args;
+  if (tokenType === 'ACCESS_TOKEN') {
     const config = accessTokenConfig;
     return new Promise<string>((resolve, reject) => {
       jwt.sign(initialPayload, `${JWT_SECRET}${csrfToken}`, config, (error, token) => {
@@ -23,7 +35,7 @@ const sign = async <T extends 'access token' | 'refresh token'>(
         }
       });
     });
-  } else if (tokenType === 'refresh token') {
+  } else if (tokenType === 'REFRESH_TOKEN') {
     const config = refreshTokenConfig;
     return new Promise<string>((resolve, reject) => {
       jwt.sign(initialPayload, `${JWT_SECRET}`, config, (error, token) => {
