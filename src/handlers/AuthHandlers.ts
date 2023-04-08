@@ -49,178 +49,122 @@ const userSchema = z.object({
     }),
 });
 
-const generateCsrfToken: RequestHandler = async (_req, res) => {
-  // generate random 16 bytes csrf key and 32 bytes csrf token
-  const csrfKey = randomBytes(16).toString('hex');
-  const csrfToken = randomBytes(32).toString('hex');
-
-  // hashed csrf token with csrf key
-  const hashedCsrfToken = createHash('sha256').update(`${csrfKey}${csrfToken}`).digest('hex');
-
-  // store csrf key in cache with key of csrf token
+const generateCsrfToken: RequestHandler = async (_req, res, next) => {
   try {
+    // generate random 16 bytes csrf key and 32 bytes csrf token
+    const csrfKey = randomBytes(16).toString('hex');
+    const csrfToken = randomBytes(32).toString('hex');
+
+    // hashed csrf token with csrf key
+    const hashedCsrfToken = createHash('sha256').update(`${csrfKey}${csrfToken}`).digest('hex');
+
+    // store csrf key in cache with key of csrf token
     await memcached.set(csrfToken, csrfKey, 5 * 60);
+
+    // send hashed csrf token via cookie
+    res.cookie(csrfCookieName, hashedCsrfToken, cookieConfig);
+
+    // send csrf token via response payload
+    return res.status(200).json({ csrfToken });
   } catch (error) {
-    if (error instanceof MemcachedMethodError) {
-      logError('generateCsrfToken > memcached csrf token set', error, true);
-      return res.status(500).json({
-        status: 'error',
-        message: `failed caching token : ${error.message}`,
-      } satisfies ErrorResponse);
-    }
-    logError('generateCsrfToken > memcached csrf token set', error, false);
-    return res.status(500).json({
-      status: 'error',
-      message: 'unknown error',
-    } satisfies ErrorResponse);
+    next(error);
   }
-
-  // send hashed csrf token via cookie
-  res.cookie(csrfCookieName, hashedCsrfToken, cookieConfig);
-
-  // send csrf token via response payload
-  return res.status(200).json({ csrfToken });
 };
 
-const register: RequestHandler = async (req, res) => {
-  // parse request body
-  const bodySchema = userSchema.omit({ id: true });
-  const parsedInput = bodySchema.safeParse(req.body);
-  if (!parsedInput.success) {
-    return res.status(400).json({
-      status: 'error',
-      message: 'request body not valid',
-      errors: parsedInput.error.issues,
-    } satisfies ErrorResponse);
-  }
-  const { email, name, password } = parsedInput.data;
-
-  // encrypt password
-  let encryptedPassword: string;
+const register: RequestHandler = async (req, res, next) => {
   try {
-    encryptedPassword = (await promisifiedScrypt(password, PASSWORD_SECRET, 32)).toString('hex');
-  } catch (error) {
-    logError('register > encrypt password', error);
-    return res.status(500).json({
-      status: 'error',
-      message: 'encryption error',
-    } satisfies ErrorResponse);
-  }
+    // parse request body
+    const bodySchema = userSchema.omit({ id: true });
+    const parsedInput = bodySchema.safeParse(req.body);
+    if (!parsedInput.success) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'request body not valid',
+        errors: parsedInput.error.issues,
+      } satisfies ErrorResponse);
+    }
+    const { email, name, password } = parsedInput.data;
 
-  // insert user to database
-  let insertResult;
-  try {
-    insertResult = await prisma.user.create({
+    // encrypt password
+    const encryptedPassword = (await promisifiedScrypt(password, PASSWORD_SECRET, 32)).toString('hex');
+
+    // insert user to database
+    const insertResult = await prisma.user.create({
       data: {
         email,
         name,
         password: encryptedPassword,
       },
     });
-  } catch (error) {
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      logError('register > prisma user insert', error, true);
-      return res.status(500).json({
-        status: 'error',
-        message: 'known prisma insert error',
-        errors: [error],
-      } satisfies ErrorResponse);
-    } else if (isPeculiarPrismaError(error)) {
-      logError('register > prisma user insert', error, true);
-      return res.status(500).json({
-        status: 'error',
-        message: 'peculiar prisma insert error',
-        errors: [error],
-      } satisfies ErrorResponse);
+
+    // store created user to cache
+    try {
+      await memcached.set(
+        `user:${insertResult.id}`,
+        JSON.stringify({ email: insertResult.email, name: insertResult.name }),
+        60
+      );
+    } catch (error) {
+      if (error instanceof MemcachedMethodError) {
+        logError(`${req.path} > memcached user set`, error, true);
+      } else {
+        logError(`${req.path} > memcached user set`, error, false);
+      }
     }
-    logError('register > prisma user insert', error, false);
-    return res.status(500).json({
-      status: 'error',
-      message: 'unknown prisma insert error',
-      errors: [error],
-    } satisfies ErrorResponse);
-  }
-  if (!insertResult) {
-    logError('register > prisma insert', new Error('no insert result'), false);
-    return res.status(500).json({
-      status: 'error',
-      message: 'unknown uncatched prisma insert error',
-    } satisfies ErrorResponse);
-  }
 
-  // store created user to cache
-  try {
-    await memcached.set(
-      `user:${insertResult.id}`,
-      JSON.stringify({ email: insertResult.email, name: insertResult.name }),
-      60
-    );
-  } catch (error) {
-    if (error instanceof MemcachedMethodError) {
-      logError('register > memcached user set', error, true);
-    } else {
-      logError('register > memcached user set', error, false);
-    }
-  }
-
-  // generate refresh token
-  const refreshToken = await jwtPromisified.sign('REFRESH_TOKEN', {
-    userId: insertResult.id,
-    userEmail: insertResult.email,
-    userName: insertResult.name,
-  });
-
-  // generate access token
-  const csrfToken = req.headers['x-csrf-token'] as string;
-  const accessToken = await jwtPromisified.sign(
-    'ACCESS_TOKEN',
-    {
+    // generate refresh token
+    const refreshToken = await jwtPromisified.sign('REFRESH_TOKEN', {
       userId: insertResult.id,
       userEmail: insertResult.email,
       userName: insertResult.name,
-    },
-    csrfToken
-  );
+    });
 
-  // store csrf key in cache with key of refresh token
-  try {
+    // generate access token
+    const csrfToken = req.headers['x-csrf-token'] as string;
+    const accessToken = await jwtPromisified.sign(
+      'ACCESS_TOKEN',
+      {
+        userId: insertResult.id,
+        userEmail: insertResult.email,
+        userName: insertResult.name,
+      },
+      csrfToken
+    );
+
+    // store csrf key in cache with key of refresh token
     const csrfKey = (await memcached.get(csrfToken)).result as string;
     await memcached.set(refreshToken, csrfKey, 7 * 24 * 60 * 60);
-  } catch (error) {
-    if (error instanceof MemcachedMethodError) {
-      logError('register > memcached csrf key get & refresh token set', error, true);
-    } else {
-      logError('register > memcached csrf key get & refresh token set', error, false);
-    }
-  }
 
-  // delete csrf key in cache with key of csrf token
-  try {
+    // delete csrf key in cache with key of csrf token
     await memcached.del(csrfToken);
+
+    // send refresh token via cookie
+    res.cookie(refreshCookieName, refreshToken, cookieConfig);
+
+    // send created user and access token via response payload
+    return res.status(201).json({
+      status: 'success',
+      message: 'user created',
+      datas: [
+        {
+          email: insertResult.email,
+          name: insertResult.name,
+          createdAt: insertResult.createdAt,
+          accessToken,
+        },
+      ],
+    } as SuccessResponse);
   } catch (error) {
-    if (error instanceof MemcachedMethodError) {
-      logError('register > memcached csrf token del', error, true);
-    } else {
-      logError('register > memcached csrf token del', error, false);
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      logError('register > prisma user insert', error, true);
+      return res.status(400).json({
+        status: 'error',
+        message: ' prisma insert error',
+        errors: [error],
+      } satisfies ErrorResponse);
     }
+    next(error);
   }
-
-  // send refresh token via cookie
-  res.cookie(refreshCookieName, refreshToken, cookieConfig);
-
-  // send created user and access token via response payload
-  return res.status(201).json({
-    status: 'success',
-    message: 'user created',
-    datas: [
-      {
-        email: insertResult.email,
-        name: insertResult.name,
-        createdAt: insertResult.createdAt,
-        accessToken,
-      },
-    ],
-  } as SuccessResponse);
 };
 
 const login: RequestHandler = (req, res) => {

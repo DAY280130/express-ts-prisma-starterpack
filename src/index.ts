@@ -7,6 +7,7 @@ import cookieParser from 'cookie-parser';
 import { todoRouters } from '@src/routers/TodoRouters.js';
 import { COOKIE_SECRET, cookieConfig } from '@src/configs/CookieConfigs.js';
 import { authRouters } from '@src/routers/AuthRouters.js';
+import errorHandler from '@src/handlers/ErrorHandlers.js';
 
 // create express instance
 const app = express();
@@ -27,6 +28,9 @@ app.get('/', (req, res) => {
   res.cookie('test-cookie', 'secret cookie value', cookieConfig);
   res.json({ message: 'ok', detectedCookie });
 });
+
+// global internal error handler
+app.use(errorHandler);
 
 // run express
 const port = parseInt(process.env.PORT || '0');
