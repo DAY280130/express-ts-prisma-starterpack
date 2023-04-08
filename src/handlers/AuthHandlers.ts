@@ -97,7 +97,7 @@ const register: RequestHandler = async (req, res, next) => {
       },
     });
 
-    // store created user to cache
+    // store created user to cache (potential non-harmful error)
     try {
       await memcached.set(
         `user:${insertResult.id}`,
