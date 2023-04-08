@@ -6,7 +6,10 @@ import { MemcachedMethodError, memcached } from '@src/helpers/MemcachedHelpers.j
 import { prisma } from '@src/helpers/PrismaHelpers.js';
 import { BinaryLike, createHash, randomBytes, scrypt } from 'crypto';
 import { RequestHandler } from 'express';
+import validatorNamespace from 'validator';
 import * as z from 'zod';
+
+const validator = validatorNamespace.default;
 
 const promisifiedScrypt = async (password: BinaryLike, salt: BinaryLike, keylen: number) =>
   new Promise<Buffer>((resolve, reject) => {
@@ -24,28 +27,37 @@ const PASSWORD_SECRET = process.env.PASSWORD_SECRET || 'super secret password';
 const userSchema = z.object({
   id: z.string().uuid(),
   email: z
-    .string({
-      required_error: 'email required',
-    })
-    .email({
-      message: 'email not valid',
-    })
-    .max(100, {
-      message: 'email too long, max 100 characters',
-    }),
+    .string({ required_error: 'email required' })
+    .email({ message: 'email not valid' })
+    .max(100, { message: 'email too long, max 100 characters' })
+    .trim()
+    .transform(val => validator.escape(val))
+    .transform(
+      val =>
+        validator.normalizeEmail(val, {
+          all_lowercase: true,
+          gmail_convert_googlemaildotcom: true,
+          gmail_remove_dots: true,
+          gmail_remove_subaddress: true,
+          icloud_remove_subaddress: true,
+          outlookdotcom_remove_subaddress: true,
+          yahoo_remove_subaddress: true,
+        }) as string
+    ),
   name: z
-    .string({
-      required_error: 'name required',
+    .string({ required_error: 'name required' })
+    .max(100, { message: 'name too long, max 100 characters' })
+    .trim()
+    .refine(val => validator.isAlpha(val, 'en-US', { ignore: ' ' }), {
+      message: 'name should only contains alpha characters and spaces',
     })
-    .max(100, {
-      message: 'name too long, max 100 characters',
-    }),
+    .transform(val => validator.escape(val)),
   password: z
-    .string({
-      required_error: 'password required',
-    })
-    .max(256, {
-      message: 'password too long, max 256 characters',
+    .string({ required_error: 'password required' })
+    .max(256, { message: 'password too long, max 256 characters' })
+    .trim()
+    .refine(val => validator.isStrongPassword(val), {
+      message: 'password should be at least 8 characters containing uppercases, lowercases, numbers, and symbols',
     }),
 });
 
@@ -85,15 +97,15 @@ const register: RequestHandler = async (req, res, next) => {
     }
     const { email, name, password } = parsedInput.data;
 
-    // encrypt password
-    const encryptedPassword = (await promisifiedScrypt(password, PASSWORD_SECRET, 32)).toString('hex');
+    // hash password
+    const hashedPassword = (await promisifiedScrypt(password, PASSWORD_SECRET, 32)).toString('hex');
 
     // insert user to database
     const insertResult = await prisma.user.create({
       data: {
         email,
         name,
-        password: encryptedPassword,
+        password: hashedPassword,
       },
     });
 
