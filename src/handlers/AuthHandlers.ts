@@ -1,12 +1,12 @@
 import { Prisma } from '@prisma/client';
 import { cookieConfig, csrfCookieName, refreshCookieName } from '@src/configs/CookieConfigs.js';
+import { ErrorResponse, SuccessResponse, logError } from '@src/helpers/HandlerHelpers.js';
+import { jwtPromisified } from '@src/helpers/JwtHelpers.js';
 import { MemcachedMethodError, memcached } from '@src/helpers/MemcachedHelpers.js';
 import { prisma } from '@src/helpers/PrismaHelpers.js';
-import { ErrorResponse, SuccessResponse, logError } from '@src/helpers/HandlerHelpers.js';
 import { BinaryLike, createHash, randomBytes, scrypt } from 'crypto';
 import { RequestHandler } from 'express';
 import * as z from 'zod';
-import { jwtPromisified } from '@src/helpers/JwtHelpers.js';
 
 const promisifiedScrypt = async (password: BinaryLike, salt: BinaryLike, keylen: number) =>
   new Promise<Buffer>((resolve, reject) => {
@@ -147,6 +147,7 @@ const register: RequestHandler = async (req, res, next) => {
       message: 'user created',
       datas: [
         {
+          id: insertResult.id,
           email: insertResult.email,
           name: insertResult.name,
           createdAt: insertResult.createdAt,
