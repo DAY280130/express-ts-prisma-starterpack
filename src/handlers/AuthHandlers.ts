@@ -32,18 +32,7 @@ const userSchema = z.object({
     .max(100, { message: 'email too long, max 100 characters' })
     .trim()
     .transform(val => validator.escape(val))
-    .transform(
-      val =>
-        validator.normalizeEmail(val, {
-          all_lowercase: true,
-          gmail_convert_googlemaildotcom: true,
-          gmail_remove_dots: true,
-          gmail_remove_subaddress: true,
-          icloud_remove_subaddress: true,
-          outlookdotcom_remove_subaddress: true,
-          yahoo_remove_subaddress: true,
-        }) as string
-    ),
+    .transform(val => validator.normalizeEmail(val) as string),
   name: z
     .string({ required_error: 'name required' })
     .max(100, { message: 'name too long, max 100 characters' })
