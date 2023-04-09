@@ -7,13 +7,13 @@ export const checkAnonymousCsrfToken: ExpressMiddleware = async (req, res, next)
   // check hashed csrf token presence in cookie
   const hashedCsrfToken = req.signedCookies[csrfCookieName];
   if (!hashedCsrfToken) {
-    return res.status(403).json({ message: 'valid csrf cookie not supplied' });
+    return res.status(403).json({ message: 'valid anonymous csrf cookie not supplied' });
   }
 
   // check csrf token presence in header
   const csrfToken = req.headers['x-csrf-token'] as string;
   if (!csrfToken) {
-    return res.status(403).json({ message: 'valid csrf token not supplied' });
+    return res.status(403).json({ message: 'valid anonymous csrf token not supplied' });
   }
 
   // check csrf key presence in cache
@@ -23,7 +23,7 @@ export const checkAnonymousCsrfToken: ExpressMiddleware = async (req, res, next)
   } catch (error) {
     if (error instanceof MemcachedMethodError) {
       if (error.message === 'cache miss') {
-        return res.status(403).json({ message: 'valid csrf token expired or not supplied' });
+        return res.status(403).json({ message: 'valid anonymous csrf token expired or not supplied' });
       } else {
         return res.status(500).json({ message: 'memcached error', error });
       }
@@ -44,7 +44,7 @@ export const checkAnonymousCsrfToken: ExpressMiddleware = async (req, res, next)
   // check hashed csrf token validity
   const expectedHashedCsrfToken = createHash('sha256').update(`${csrfKey}${csrfToken}`).digest('hex');
   if (expectedHashedCsrfToken !== hashedCsrfToken) {
-    return res.status(403).json({ message: 'valid csrf token not supplied' });
+    return res.status(403).json({ message: 'valid anonymous csrf token not supplied' });
   }
 
   // all check pass
