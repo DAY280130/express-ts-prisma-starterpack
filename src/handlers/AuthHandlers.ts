@@ -86,6 +86,19 @@ const register: RequestHandler = async (req, res, next) => {
     }
     const { email, name, password } = parsedInput.data;
 
+    // check for duplicate email in the database
+    const duplicateEmail = await prisma.user.findFirst({
+      where: {
+        email,
+      },
+    });
+    if (duplicateEmail) {
+      return res.status(400).send({
+        status: 'error',
+        message: 'account with presented email already exist in the database',
+      } satisfies ErrorResponse);
+    }
+
     // hash password
     const hashedPassword = (await promisifiedScrypt(password, PASSWORD_SECRET, 32)).toString('hex');
 
