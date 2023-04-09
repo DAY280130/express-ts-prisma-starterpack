@@ -1,9 +1,9 @@
 import { csrfCookieName } from '@src/configs/CookieConfigs.js';
 import { MemcachedMethodError, memcached } from '@src/helpers/MemcachedHelpers.js';
-import { ExpressMiddleware } from '@src/helpers/MiddlewareHelpers.js';
 import { createHash } from 'crypto';
+import { RequestHandler } from 'express';
 
-export const checkAnonymousCsrfToken: ExpressMiddleware = async (req, res, next) => {
+export const checkAnonymousCsrfToken: RequestHandler = async (req, res, next) => {
   // check hashed csrf token presence in cookie
   const hashedCsrfToken = req.signedCookies[csrfCookieName];
   if (!hashedCsrfToken) {
