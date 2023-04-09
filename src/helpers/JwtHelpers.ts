@@ -64,4 +64,7 @@ const verify = async (token: string) =>
     });
   });
 
+// importing jsonwebtokenerror directly from 'jsonwebtoken' throws error, so import from this instead
+export const JsonWebTokenError = jwt.JsonWebTokenError;
+
 export const jwtPromisified = { sign, verify };

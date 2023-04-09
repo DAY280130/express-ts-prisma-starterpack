@@ -1,8 +1,8 @@
 import { ErrorResponse, logError } from '@src/helpers/HandlerHelpers.js';
+import { JsonWebTokenError } from '@src/helpers/JwtHelpers.js';
 import { MemcachedMethodError } from '@src/helpers/MemcachedHelpers.js';
 import { isPeculiarPrismaError } from '@src/helpers/PrismaHelpers.js';
 import { Request, Response } from 'express';
-import { JsonWebTokenError } from 'jsonwebtoken';
 
 type ArbitraryObject = { [key: string]: unknown };
 
