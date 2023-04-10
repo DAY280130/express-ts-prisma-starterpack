@@ -1,7 +1,7 @@
 import { ErrorResponse, logError } from '@src/helpers/HandlerHelpers.js';
 import { JsonWebTokenError } from '@src/helpers/JwtHelpers.js';
 import { MemcachedMethodError } from '@src/helpers/MemcachedHelpers.js';
-import { isPeculiarPrismaError } from '@src/helpers/PrismaHelpers.js';
+import { isPrismaError } from '@src/helpers/PrismaHelpers.js';
 import { Request, Response } from 'express';
 
 type ArbitraryObject = { [key: string]: unknown };
@@ -36,7 +36,7 @@ const errorHandler = (error: NodeJS.ErrnoException | Error, req: Request, res: R
   }
 
   // catch unknown prisma error
-  if (isPeculiarPrismaError(error)) {
+  if (isPrismaError(error)) {
     logError(`${req.path} > prisma error`, error, true);
     return res.json({
       status: 'error',

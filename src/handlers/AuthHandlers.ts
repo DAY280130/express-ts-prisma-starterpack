@@ -1,4 +1,3 @@
-import { Prisma } from '@prisma/client';
 import { cookieConfig, csrfCookieName, refreshCookieName } from '@src/configs/CookieConfigs.js';
 import { ErrorResponse, SuccessResponse, logError } from '@src/helpers/HandlerHelpers.js';
 import { jwtPromisified } from '@src/helpers/JwtHelpers.js';
@@ -76,15 +75,15 @@ const register: RequestHandler = async (req, res, next) => {
   try {
     // parse request body
     const bodySchema = userSchema.omit({ id: true });
-    const parsedInput = bodySchema.safeParse(req.body);
-    if (!parsedInput.success) {
+    const parsedBody = bodySchema.safeParse(req.body);
+    if (!parsedBody.success) {
       return res.status(400).json({
         status: 'error',
         message: 'request body not valid',
-        errors: parsedInput.error.issues,
+        errors: parsedBody.error.issues,
       } satisfies ErrorResponse);
     }
-    const { email, name, password } = parsedInput.data;
+    const { email, name, password } = parsedBody.data;
 
     // check for duplicate email in the database
     const duplicateEmail = await prisma.user.findFirst({
@@ -168,22 +167,95 @@ const register: RequestHandler = async (req, res, next) => {
           accessToken,
         },
       ],
-    } as SuccessResponse);
+    } satisfies SuccessResponse);
   } catch (error) {
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      logError('register > prisma user insert', error, true);
-      return res.status(400).json({
-        status: 'error',
-        message: ' prisma insert error',
-        errors: [error],
-      } satisfies ErrorResponse);
-    }
-    next(error);
+    // pass internal error to global error handler
+    return next(error);
   }
 };
 
-const login: RequestHandler = (req, res) => {
-  return res.status(200).json({} as SuccessResponse);
+const login: RequestHandler = async (req, res, next) => {
+  try {
+    // parse request body
+    const bodySchema = userSchema.pick({ email: true, password: true });
+    const parsedBody = bodySchema.safeParse(req.body);
+    if (!parsedBody.success) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'request body not valid',
+        errors: parsedBody.error.issues,
+      } satisfies ErrorResponse);
+    }
+    const { email, password } = parsedBody.data;
+
+    // check email presence in the database
+    const user = await prisma.user.findFirst({
+      where: {
+        email,
+      },
+    });
+    if (!user) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'email or password is wrong',
+      } satisfies ErrorResponse);
+    }
+
+    // check password
+    const hashedGivenPassword = (await promisifiedScrypt(password, PASSWORD_SECRET, 32)).toString('hex');
+    if (hashedGivenPassword !== user.password) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'email or password is wrong',
+      } satisfies ErrorResponse);
+    }
+
+    // generate refresh token
+    const refreshToken = await jwtPromisified.sign('REFRESH_TOKEN', {
+      userId: user.id,
+      userEmail: user.email,
+      userName: user.name,
+    });
+
+    // generate access token
+    const csrfToken = req.headers['x-csrf-token'] as string;
+    const accessToken = await jwtPromisified.sign(
+      'ACCESS_TOKEN',
+      {
+        userId: user.id,
+        userEmail: user.email,
+        userName: user.name,
+      },
+      csrfToken
+    );
+
+    // store csrf key in cache with key of refresh token
+    const csrfKey = (await memcached.get(csrfToken)).result as string;
+    await memcached.set(refreshToken, csrfKey, 7 * 24 * 60 * 60);
+
+    // delete csrf key in cache with key of csrf token
+    await memcached.del(csrfToken);
+
+    // send refresh token via cookie
+    res.cookie(refreshCookieName, refreshToken, cookieConfig);
+
+    // send logged in user data and access token via response payload
+    return res.status(200).json({
+      status: 'success',
+      message: 'logged in',
+      datas: [
+        {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          createdAt: user.createdAt,
+          accessToken,
+        },
+      ],
+    } satisfies SuccessResponse);
+  } catch (error) {
+    return next(error);
+  }
 };
 
 // const checkCsrfToken: RequestHandler = async (req, res) => {
