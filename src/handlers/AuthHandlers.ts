@@ -254,6 +254,7 @@ const login: RequestHandler = async (req, res, next) => {
       ],
     } satisfies SuccessResponse);
   } catch (error) {
+    // pass internal error to global error handler
     return next(error);
   }
 };
