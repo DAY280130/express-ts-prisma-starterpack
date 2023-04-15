@@ -1,5 +1,4 @@
 import { cookieConfig, csrfCookieName, refreshCookieName } from '@src/configs/CookieConfigs.js';
-import { JWTPayload } from '@src/configs/JwtConfigs.js';
 import { ErrorResponse, SuccessResponse, logError } from '@src/helpers/HandlerHelpers.js';
 import { jwtPromisified } from '@src/helpers/JwtHelpers.js';
 import { MemcachedMethodError, memcached } from '@src/helpers/MemcachedHelpers.js';
@@ -263,7 +262,7 @@ const refresh: RequestHandler = async (req, res, next) => {
     const refreshToken = req.signedCookies[refreshCookieName];
 
     // get user data from refresh token
-    const { userEmail, userId, userName } = jwtPromisified.decode(refreshToken) as JWTPayload;
+    const { userEmail, userId, userName } = await jwtPromisified.decode(refreshToken);
 
     // generate new random 16 bytes csrf key and 32 bytes csrf token
     const csrfKey = randomBytes(16).toString('hex');

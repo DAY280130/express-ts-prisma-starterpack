@@ -1,38 +1,28 @@
-import { cookieConfig, csrfCookieName, refreshCookieName } from '@src/configs/CookieConfigs.js';
+import { csrfCookieName, refreshCookieName } from '@src/configs/CookieConfigs.js';
+import { AuthErrorMessages, clearSession } from '@src/helpers/AuthHelpers.js';
 import { ErrorResponse, logError } from '@src/helpers/HandlerHelpers.js';
 import { JsonWebTokenError, TokenExpiredError, jwtPromisified } from '@src/helpers/JwtHelpers.js';
 import { MemcachedMethodError, memcached } from '@src/helpers/MemcachedHelpers.js';
 import { createHash } from 'crypto';
-import { RequestHandler, Response } from 'express';
-
-const ANONYM_CSRF_TOKEN_NOT_VALID_MESSAGE = 'valid anonymous csrf token not supplied';
-const ANONYM_CSRF_TOKEN_EXPIRED = 'valid anonymous csrf token expired or not supplied';
-const CSRF_TOKEN_NOT_VALID_MESSAGE = 'valid csrf token not supplied';
-const CSRF_TOKEN_EXPIRED = 'valid csrf token expired or not supplied';
-const REFRESH_TOKEN_NOT_VALID_MESSAGE = 'valid refresh token not supplied';
-const REFRESH_TOKEN_EXPIRED = 'refresh token expired';
-
-const clearAuthCookie = (res: Response) => {
-  res.clearCookie(csrfCookieName, cookieConfig);
-  res.clearCookie(refreshCookieName, cookieConfig);
-};
+import { RequestHandler } from 'express';
 
 export const checkAnonymousCsrfToken: RequestHandler = async (req, res, next) => {
   try {
     // check hashed csrf token presence in cookie
     const hashedCsrfToken = req.signedCookies[csrfCookieName];
-    if (!hashedCsrfToken) throw new Error(ANONYM_CSRF_TOKEN_NOT_VALID_MESSAGE);
+    if (!hashedCsrfToken) throw new Error(AuthErrorMessages.ANONYM_CSRF_TOKEN_NOT_VALID_MESSAGE);
 
     // check csrf token presence in header
     const csrfToken = req.headers['x-csrf-token'] as string;
-    if (!csrfToken) throw new Error(ANONYM_CSRF_TOKEN_NOT_VALID_MESSAGE);
+    if (!csrfToken) throw new Error(AuthErrorMessages.ANONYM_CSRF_TOKEN_NOT_VALID_MESSAGE);
 
     // get csrf key in cache
     const csrfKey = (await memcached.get(csrfToken)).result as string;
 
     // check hashed csrf token validity
     const expectedHashedCsrfToken = createHash('sha256').update(`${csrfKey}${csrfToken}`).digest('hex');
-    if (expectedHashedCsrfToken !== hashedCsrfToken) throw new Error(ANONYM_CSRF_TOKEN_NOT_VALID_MESSAGE);
+    if (expectedHashedCsrfToken !== hashedCsrfToken)
+      throw new Error(AuthErrorMessages.ANONYM_CSRF_TOKEN_NOT_VALID_MESSAGE);
 
     // prolong csrf key cache expire time
     try {
@@ -47,12 +37,19 @@ export const checkAnonymousCsrfToken: RequestHandler = async (req, res, next) =>
     // all check pass
     return next();
   } catch (error) {
+    // get csrf token if any
+    const csrfToken = req.headers['x-csrf-token'] as string | null;
+
     // catch no valid csrf token error
-    if (error instanceof Error && error.message === ANONYM_CSRF_TOKEN_NOT_VALID_MESSAGE) {
-      clearAuthCookie(res);
+    if (error instanceof Error && error.message === AuthErrorMessages.ANONYM_CSRF_TOKEN_NOT_VALID_MESSAGE) {
+      if (csrfToken) {
+        clearSession(res, csrfToken);
+      } else {
+        clearSession(res);
+      }
       return res.status(403).json({
         status: 'error',
-        message: ANONYM_CSRF_TOKEN_NOT_VALID_MESSAGE,
+        message: AuthErrorMessages.ANONYM_CSRF_TOKEN_NOT_VALID_MESSAGE,
       } satisfies ErrorResponse);
     }
 
@@ -60,10 +57,10 @@ export const checkAnonymousCsrfToken: RequestHandler = async (req, res, next) =>
     if (error instanceof MemcachedMethodError) {
       // catch expired or no valid csrf token error
       if (error.message === 'cache miss') {
-        clearAuthCookie(res);
+        clearSession(res);
         return res.status(403).json({
           status: 'error',
-          message: ANONYM_CSRF_TOKEN_EXPIRED,
+          message: AuthErrorMessages.ANONYM_CSRF_TOKEN_EXPIRED,
         } satisfies ErrorResponse);
       } else {
         // pass internal memcached error to global error handler
@@ -80,15 +77,15 @@ export const checkAuthorizedCsrfToken: RequestHandler = async (req, res, next) =
   try {
     // check hashed csrf token presence in cookie
     const hashedCsrfToken = req.signedCookies[csrfCookieName];
-    if (!hashedCsrfToken) throw new Error(CSRF_TOKEN_NOT_VALID_MESSAGE);
+    if (!hashedCsrfToken) throw new Error(AuthErrorMessages.CSRF_TOKEN_NOT_VALID_MESSAGE);
 
     // check csrf token presence in header
     const csrfToken = req.headers['x-csrf-token'] as string;
-    if (!csrfToken) throw new Error(CSRF_TOKEN_NOT_VALID_MESSAGE);
+    if (!csrfToken) throw new Error(AuthErrorMessages.CSRF_TOKEN_NOT_VALID_MESSAGE);
 
     // check refresh token presence in cookie
     const refreshToken = req.signedCookies[refreshCookieName];
-    if (!refreshToken) throw new Error(REFRESH_TOKEN_NOT_VALID_MESSAGE);
+    if (!refreshToken) throw new Error(AuthErrorMessages.REFRESH_TOKEN_NOT_VALID_MESSAGE);
 
     // check refresh token validity
     await jwtPromisified.verify(refreshToken);
@@ -98,7 +95,7 @@ export const checkAuthorizedCsrfToken: RequestHandler = async (req, res, next) =
 
     // check hashed csrf token validity
     const expectedHashedCsrfToken = createHash('sha256').update(`${csrfKey}${csrfToken}`).digest('hex');
-    if (expectedHashedCsrfToken !== hashedCsrfToken) throw new Error(CSRF_TOKEN_NOT_VALID_MESSAGE);
+    if (expectedHashedCsrfToken !== hashedCsrfToken) throw new Error(AuthErrorMessages.CSRF_TOKEN_NOT_VALID_MESSAGE);
 
     // prolong csrf key cache expire time
     try {
@@ -113,12 +110,19 @@ export const checkAuthorizedCsrfToken: RequestHandler = async (req, res, next) =
     // all check pass
     return next();
   } catch (error) {
+    // get refresh token if any
+    const refreshToken = req.signedCookies[refreshCookieName] as string | null;
+
     // catch no valid csrf token error
-    if (error instanceof Error && error.message === CSRF_TOKEN_NOT_VALID_MESSAGE) {
-      clearAuthCookie(res);
+    if (error instanceof Error && error.message === AuthErrorMessages.CSRF_TOKEN_NOT_VALID_MESSAGE) {
+      if (refreshToken) {
+        clearSession(res, refreshToken);
+      } else {
+        clearSession(res);
+      }
       return res.status(403).json({
         status: 'error',
-        message: CSRF_TOKEN_NOT_VALID_MESSAGE,
+        message: AuthErrorMessages.CSRF_TOKEN_NOT_VALID_MESSAGE,
       } satisfies ErrorResponse);
     }
 
@@ -126,10 +130,10 @@ export const checkAuthorizedCsrfToken: RequestHandler = async (req, res, next) =
     if (error instanceof MemcachedMethodError) {
       // catch expired or no valid csrf token error
       if (error.message === 'cache miss') {
-        clearAuthCookie(res);
+        clearSession(res);
         return res.status(403).json({
           status: 'error',
-          message: CSRF_TOKEN_EXPIRED,
+          message: AuthErrorMessages.CSRF_TOKEN_EXPIRED,
         } satisfies ErrorResponse);
       } else {
         // pass internal memcached error to global error handler
@@ -139,22 +143,26 @@ export const checkAuthorizedCsrfToken: RequestHandler = async (req, res, next) =
 
     // catch refresh token expired error
     if (error instanceof TokenExpiredError) {
-      clearAuthCookie(res);
+      if (refreshToken) clearSession(res, refreshToken);
       return res.status(401).json({
         status: 'error',
-        message: REFRESH_TOKEN_EXPIRED,
+        message: AuthErrorMessages.REFRESH_TOKEN_EXPIRED,
       } satisfies ErrorResponse);
     }
 
     // catch no valid refresh token error
     if (
-      (error instanceof Error && error.message === REFRESH_TOKEN_NOT_VALID_MESSAGE) ||
+      (error instanceof Error && error.message === AuthErrorMessages.REFRESH_TOKEN_NOT_VALID_MESSAGE) ||
       error instanceof JsonWebTokenError
     ) {
-      clearAuthCookie(res);
+      if (refreshToken) {
+        clearSession(res, refreshToken);
+      } else {
+        clearSession(res);
+      }
       return res.status(401).json({
         status: 'error',
-        message: REFRESH_TOKEN_NOT_VALID_MESSAGE,
+        message: AuthErrorMessages.REFRESH_TOKEN_NOT_VALID_MESSAGE,
       } satisfies ErrorResponse);
     }
 

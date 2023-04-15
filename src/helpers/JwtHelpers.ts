@@ -64,8 +64,18 @@ const verify = async (token: string) =>
     });
   });
 
+const decode = async (token: string) =>
+  new Promise<JWTPayload>((resolve, reject) => {
+    try {
+      const decoded = jwt.decode(token);
+      resolve(decoded as JWTPayload);
+    } catch (error) {
+      reject(error);
+    }
+  });
+
 // importing jsonwebtokenerror directly from 'jsonwebtoken' throws error, so import from this instead
 export const JsonWebTokenError = jwt.JsonWebTokenError;
 export const TokenExpiredError = jwt.TokenExpiredError;
 
-export const jwtPromisified = { sign, verify, decode: jwt.decode };
+export const jwtPromisified = { sign, verify, decode };
