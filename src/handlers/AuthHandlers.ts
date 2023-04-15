@@ -10,7 +10,7 @@ import * as z from 'zod';
 
 const validator = validatorNamespace.default;
 
-const promisifiedScrypt = async (password: BinaryLike, salt: BinaryLike, keylen: number) =>
+const scryptPromisified = async (password: BinaryLike, salt: BinaryLike, keylen: number) =>
   new Promise<Buffer>((resolve, reject) => {
     scrypt(password, salt, keylen, (error, derivedKey) => {
       if (error) {
@@ -86,7 +86,7 @@ const register: RequestHandler = async (req, res, next) => {
     const { email, name, password } = parsedBody.data;
 
     // hash password
-    const hashedPassword = (await promisifiedScrypt(password, PASSWORD_SECRET, 32)).toString('hex');
+    const hashedPassword = (await scryptPromisified(password, PASSWORD_SECRET, 32)).toString('hex');
 
     // insert user to database
     const insertResult = await prisma.user.create({
@@ -199,7 +199,7 @@ const login: RequestHandler = async (req, res, next) => {
     }
 
     // check password
-    const hashedGivenPassword = (await promisifiedScrypt(password, PASSWORD_SECRET, 32)).toString('hex');
+    const hashedGivenPassword = (await scryptPromisified(password, PASSWORD_SECRET, 32)).toString('hex');
     if (hashedGivenPassword !== user.password) {
       return res.status(400).json({
         status: 'error',
