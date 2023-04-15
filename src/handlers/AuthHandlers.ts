@@ -1,4 +1,5 @@
 import { cookieConfig, csrfCookieName, refreshCookieName } from '@src/configs/CookieConfigs.js';
+import { JWTPayload } from '@src/configs/JwtConfigs.js';
 import { ErrorResponse, SuccessResponse, logError } from '@src/helpers/HandlerHelpers.js';
 import { jwtPromisified } from '@src/helpers/JwtHelpers.js';
 import { MemcachedMethodError, memcached } from '@src/helpers/MemcachedHelpers.js';
@@ -256,6 +257,31 @@ const login: RequestHandler = async (req, res, next) => {
   }
 };
 
+const refresh: RequestHandler = async (req, res, next) => {
+  try {
+    // get refresh token from cookie
+    const refreshToken = req.signedCookies[refreshCookieName];
+
+    // get csrf token from header
+    const csrfToken = req.headers['x-csrf-token'] as string;
+
+    // get user data from refresh token
+    const { userEmail, userId, userName } = jwtPromisified.decode(refreshToken) as JWTPayload;
+
+    // generate new access token
+    const accessToken = await jwtPromisified.sign('ACCESS_TOKEN', { userEmail, userId, userName }, csrfToken);
+
+    return res.status(200).json({
+      status: 'success',
+      message: 'new access token generated',
+      datas: [{ accessToken }],
+    } satisfies SuccessResponse);
+  } catch (error) {
+    // pass internal error to global error handler
+    next(error);
+  }
+};
+
 // const checkCsrfToken: RequestHandler = async (req, res) => {
 //   const hashedCsrfToken = req.signedCookies[csrfCookieName];
 //   if (!hashedCsrfToken) {
@@ -300,4 +326,5 @@ export const authHandlers = {
   // checkCsrfToken,
   login,
   register,
+  refresh,
 };

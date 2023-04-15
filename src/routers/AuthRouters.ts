@@ -1,5 +1,5 @@
 import { authHandlers } from '@src/handlers/AuthHandlers.js';
-import { checkAnonymousCsrfToken } from '@src/middlewares/CsrfMiddlewares.js';
+import { checkAnonymousCsrfToken, checkAuthorizedCsrfToken } from '@src/middlewares/CsrfMiddlewares.js';
 import { Router } from 'express';
 
 export const authRouters = Router();
@@ -9,3 +9,4 @@ authRouters.get(`${BASE_ROUTE}/token`, authHandlers.generateCsrfToken);
 // authRouters.get(`${BASE_ROUTE}/token/verify`, authHandlers.checkCsrfToken);
 authRouters.post(`${BASE_ROUTE}/login`, checkAnonymousCsrfToken, authHandlers.login);
 authRouters.post(`${BASE_ROUTE}/register`, checkAnonymousCsrfToken, authHandlers.register);
+authRouters.post(`${BASE_ROUTE}/refresh`, checkAuthorizedCsrfToken, authHandlers.refresh);
