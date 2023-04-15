@@ -11,7 +11,7 @@ export const AuthErrorMessages = {
   REFRESH_TOKEN_EXPIRED: 'refresh token expired',
   ACCESS_TOKEN_NOT_VALID_MESSAGE: 'valid access token not supplied',
   ACCESS_TOKEN_EXPIRED: 'access token expired, please refresh access token',
-};
+} as const;
 
 export const clearSession = async (res: Response, cacheToken?: string) => {
   res.clearCookie(csrfCookieName, cookieConfig);
