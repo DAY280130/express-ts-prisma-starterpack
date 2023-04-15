@@ -1,4 +1,4 @@
-import { ErrorResponse, logError } from '@src/helpers/HandlerHelpers.js';
+import { ErrorResponse } from '@src/helpers/HandlerHelpers.js';
 import { JsonWebTokenError, TokenExpiredError, jwtPromisified } from '@src/helpers/JwtHelpers.js';
 import { RequestHandler } from 'express';
 
@@ -24,7 +24,6 @@ export const checkAccessToken: RequestHandler = async (req, res, next) => {
       (error instanceof Error && error.message === ACCESS_TOKEN_NOT_VALID_MESSAGE) ||
       error instanceof JsonWebTokenError
     ) {
-      logError(`${req.path} : checkAccessToken middleware`, error, true);
       return res.status(401).json({
         status: 'error',
         message: ACCESS_TOKEN_NOT_VALID_MESSAGE,
@@ -33,17 +32,13 @@ export const checkAccessToken: RequestHandler = async (req, res, next) => {
 
     // catch expired access token error
     if (error instanceof TokenExpiredError) {
-      logError(`${req.path} : checkAccessToken middleware`, error, true);
       return res.status(401).json({
         status: 'error',
         message: ACCESS_TOKEN_EXPIRED,
       } satisfies ErrorResponse);
     }
 
-    logError(`${req.path} : checkAccessToken middleware`, error, false);
-    return res.status(500).json({
-      status: 'error',
-      message: 'internal error',
-    } satisfies ErrorResponse);
+    // pass internal error to global error handler
+    next(error);
   }
 };

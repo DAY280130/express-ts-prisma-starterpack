@@ -12,6 +12,11 @@ const CSRF_TOKEN_EXPIRED = 'valid csrf token expired or not supplied';
 const REFRESH_TOKEN_NOT_VALID_MESSAGE = 'valid refresh token not supplied';
 const REFRESH_TOKEN_EXPIRED = 'refresh token expired';
 
+const clearAuthCookie = (res: Response) => {
+  res.clearCookie(csrfCookieName, cookieConfig);
+  res.clearCookie(refreshCookieName, cookieConfig);
+};
+
 export const checkAnonymousCsrfToken: RequestHandler = async (req, res, next) => {
   try {
     // check hashed csrf token presence in cookie
@@ -44,6 +49,7 @@ export const checkAnonymousCsrfToken: RequestHandler = async (req, res, next) =>
   } catch (error) {
     // catch no valid csrf token error
     if (error instanceof Error && error.message === ANONYM_CSRF_TOKEN_NOT_VALID_MESSAGE) {
+      clearAuthCookie(res);
       return res.status(403).json({
         status: 'error',
         message: ANONYM_CSRF_TOKEN_NOT_VALID_MESSAGE,
@@ -54,30 +60,20 @@ export const checkAnonymousCsrfToken: RequestHandler = async (req, res, next) =>
     if (error instanceof MemcachedMethodError) {
       // catch expired or no valid csrf token error
       if (error.message === 'cache miss') {
+        clearAuthCookie(res);
         return res.status(403).json({
           status: 'error',
           message: ANONYM_CSRF_TOKEN_EXPIRED,
         } satisfies ErrorResponse);
       } else {
-        logError(`${req.path} : checkAnonymousCsrfToken > memcached error`, error, true);
-        return res.status(500).json({
-          status: 'error',
-          message: 'internal memcached error',
-        } satisfies ErrorResponse);
+        // pass internal memcached error to global error handler
+        next(error);
       }
     }
 
-    logError(`${req.path} : checkAnonymousCsrfToken`, error, false);
-    return res.status(500).json({
-      status: 'error',
-      message: 'internal error',
-    } satisfies ErrorResponse);
+    // pass internal error to global error handler
+    next(error);
   }
-};
-
-const clearCookie = (res: Response) => {
-  res.clearCookie(csrfCookieName, cookieConfig);
-  res.clearCookie(refreshCookieName, cookieConfig);
 };
 
 export const checkAuthorizedCsrfToken: RequestHandler = async (req, res, next) => {
@@ -119,7 +115,7 @@ export const checkAuthorizedCsrfToken: RequestHandler = async (req, res, next) =
   } catch (error) {
     // catch no valid csrf token error
     if (error instanceof Error && error.message === CSRF_TOKEN_NOT_VALID_MESSAGE) {
-      clearCookie(res);
+      clearAuthCookie(res);
       return res.status(403).json({
         status: 'error',
         message: CSRF_TOKEN_NOT_VALID_MESSAGE,
@@ -130,23 +126,20 @@ export const checkAuthorizedCsrfToken: RequestHandler = async (req, res, next) =
     if (error instanceof MemcachedMethodError) {
       // catch expired or no valid csrf token error
       if (error.message === 'cache miss') {
-        clearCookie(res);
+        clearAuthCookie(res);
         return res.status(403).json({
           status: 'error',
           message: CSRF_TOKEN_EXPIRED,
         } satisfies ErrorResponse);
       } else {
-        logError(`${req.path} : checkAnonymousCsrfToken > memcached error`, error, true);
-        return res.status(500).json({
-          status: 'error',
-          message: 'internal memcached error',
-        } satisfies ErrorResponse);
+        // pass internal memcached error to global error handler
+        next(error);
       }
     }
 
     // catch refresh token expired error
     if (error instanceof TokenExpiredError) {
-      clearCookie(res);
+      clearAuthCookie(res);
       return res.status(401).json({
         status: 'error',
         message: REFRESH_TOKEN_EXPIRED,
@@ -158,17 +151,14 @@ export const checkAuthorizedCsrfToken: RequestHandler = async (req, res, next) =
       (error instanceof Error && error.message === REFRESH_TOKEN_NOT_VALID_MESSAGE) ||
       error instanceof JsonWebTokenError
     ) {
-      clearCookie(res);
+      clearAuthCookie(res);
       return res.status(401).json({
         status: 'error',
         message: REFRESH_TOKEN_NOT_VALID_MESSAGE,
       } satisfies ErrorResponse);
     }
 
-    logError(`${req.path} : checkAnonymousCsrfToken`, error, false);
-    return res.status(500).json({
-      status: 'error',
-      message: 'internal error',
-    } satisfies ErrorResponse);
+    // pass internal error to global error handler
+    next(error);
   }
 };
