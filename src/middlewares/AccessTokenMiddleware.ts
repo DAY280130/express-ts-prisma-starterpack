@@ -40,7 +40,7 @@ export const checkAccessToken: RequestHandler = async (req, res, next) => {
       } satisfies ErrorResponse);
     }
 
-    logError(`${req.path} : checkAccessToken middleware`, error, 'unset');
+    logError(`${req.path} : checkAccessToken middleware`, error, false);
     return res.status(500).json({
       status: 'error',
       message: 'internal error',
