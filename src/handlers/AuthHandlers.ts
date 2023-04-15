@@ -293,6 +293,28 @@ const refresh: RequestHandler = async (req, res, next) => {
   }
 };
 
+const checkSession: RequestHandler = async (req, res) => {
+  const hashedCsrfToken = req.signedCookies[csrfCookieName];
+  const csrfToken = req.headers['x-csrf-token'] as string;
+  const refreshToken = req.signedCookies[refreshCookieName];
+  const csrfKey = (await memcached.get(refreshToken)).result as string;
+  const accessTokenHeader = req.headers['Authorization'] as string;
+  const accessToken = accessTokenHeader.split(' ')[1];
+  return res.status(200).json({
+    status: 'success',
+    message: 'session ok!',
+    datas: [
+      {
+        csrfToken,
+        csrfKey,
+        hashedCsrfToken,
+        refreshToken,
+        accessToken,
+      },
+    ],
+  } satisfies SuccessResponse);
+};
+
 // const checkCsrfToken: RequestHandler = async (req, res) => {
 //   const hashedCsrfToken = req.signedCookies[csrfCookieName];
 //   if (!hashedCsrfToken) {
@@ -338,4 +360,5 @@ export const authHandlers = {
   login,
   register,
   refresh,
+  checkSession,
 };
