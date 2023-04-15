@@ -2,7 +2,7 @@ import { cookieConfig, csrfCookieName, refreshCookieName } from '@src/configs/Co
 import { ErrorResponse, SuccessResponse, logError } from '@src/helpers/HandlerHelpers.js';
 import { jwtPromisified } from '@src/helpers/JwtHelpers.js';
 import { MemcachedMethodError, memcached } from '@src/helpers/MemcachedHelpers.js';
-import { prisma } from '@src/helpers/PrismaHelpers.js';
+import { PrismaClientKnownRequestError, prisma } from '@src/helpers/PrismaHelpers.js';
 import { BinaryLike, createHash, randomBytes, scrypt } from 'crypto';
 import { RequestHandler } from 'express';
 import validatorNamespace from 'validator';
@@ -85,19 +85,6 @@ const register: RequestHandler = async (req, res, next) => {
     }
     const { email, name, password } = parsedBody.data;
 
-    // check for duplicate email in the database
-    const duplicateEmail = await prisma.user.findFirst({
-      where: {
-        email,
-      },
-    });
-    if (duplicateEmail) {
-      return res.status(400).send({
-        status: 'error',
-        message: 'account with presented email already exist in the database',
-      } satisfies ErrorResponse);
-    }
-
     // hash password
     const hashedPassword = (await promisifiedScrypt(password, PASSWORD_SECRET, 32)).toString('hex');
 
@@ -169,6 +156,16 @@ const register: RequestHandler = async (req, res, next) => {
       ],
     } satisfies SuccessResponse);
   } catch (error) {
+    // catch register unique email violation
+    if (error instanceof PrismaClientKnownRequestError && error.code === 'P2002') {
+      if (error.meta?.target === 'user_email_key') {
+        return res.status(400).json({
+          status: 'error',
+          message: 'account with presented email already exist in the database',
+        } satisfies ErrorResponse);
+      }
+    }
+
     // pass internal error to global error handler
     return next(error);
   }

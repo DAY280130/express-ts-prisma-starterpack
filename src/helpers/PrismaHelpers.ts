@@ -2,6 +2,8 @@ import { PrismaClient, Prisma } from '@prisma/client';
 
 export const prisma = new PrismaClient();
 
+export const PrismaClientKnownRequestError = Prisma.PrismaClientKnownRequestError;
+
 export const isPrismaError = (error: unknown) => {
   return (
     error instanceof Prisma.PrismaClientKnownRequestError ||
