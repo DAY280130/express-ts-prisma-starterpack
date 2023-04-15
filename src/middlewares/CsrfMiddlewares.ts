@@ -1,8 +1,8 @@
-import { csrfCookieName, refreshCookieName } from '@src/configs/CookieConfigs.js';
-import { JsonWebTokenError, jwtPromisified } from '@src/helpers/JwtHelpers.js';
+import { cookieConfig, csrfCookieName, refreshCookieName } from '@src/configs/CookieConfigs.js';
+import { JsonWebTokenError, TokenExpiredError, jwtPromisified } from '@src/helpers/JwtHelpers.js';
 import { MemcachedMethodError, memcached } from '@src/helpers/MemcachedHelpers.js';
 import { createHash } from 'crypto';
-import { RequestHandler } from 'express';
+import { RequestHandler, Response } from 'express';
 
 export const checkAnonymousCsrfToken: RequestHandler = async (req, res, next) => {
   // check hashed csrf token presence in cookie
@@ -52,22 +52,30 @@ export const checkAnonymousCsrfToken: RequestHandler = async (req, res, next) =>
   return next();
 };
 
+const clearCookie = (res: Response) => {
+  res.clearCookie(csrfCookieName, cookieConfig);
+  res.clearCookie(refreshCookieName, cookieConfig);
+};
+
 export const checkAuthorizedCsrfToken: RequestHandler = async (req, res, next) => {
   // check hashed csrf token presence in cookie
   const hashedCsrfToken = req.signedCookies[csrfCookieName];
   if (!hashedCsrfToken) {
+    clearCookie(res);
     return res.status(403).json({ message: 'valid csrf cookie not supplied' });
   }
 
   // check csrf token presence in header
   const csrfToken = req.headers['x-csrf-token'] as string;
   if (!csrfToken) {
+    clearCookie(res);
     return res.status(403).json({ message: 'valid csrf token not supplied' });
   }
 
   // check refresh token presence in cookie
   const refreshToken = req.signedCookies[refreshCookieName];
   if (!refreshToken) {
+    clearCookie(res);
     return res.status(401).json({ message: 'valid refresh token not supplied' });
   }
 
@@ -75,7 +83,12 @@ export const checkAuthorizedCsrfToken: RequestHandler = async (req, res, next) =
   try {
     await jwtPromisified.verify(refreshToken);
   } catch (error) {
+    if (error instanceof TokenExpiredError) {
+      clearCookie(res);
+      return res.status(401).json({ message: 'refresh token expired' });
+    }
     if (error instanceof JsonWebTokenError) {
+      clearCookie(res);
       return res.status(401).json({ message: 'valid refresh token not supplied' });
     }
   }
@@ -87,6 +100,7 @@ export const checkAuthorizedCsrfToken: RequestHandler = async (req, res, next) =
   } catch (error) {
     if (error instanceof MemcachedMethodError) {
       if (error.message === 'cache miss') {
+        clearCookie(res);
         return res.status(403).json({ message: 'valid csrf token expired or not supplied' });
       } else {
         return res.status(500).json({ message: 'memcached error', error });
@@ -98,6 +112,7 @@ export const checkAuthorizedCsrfToken: RequestHandler = async (req, res, next) =
   // check hashed csrf token validity
   const expectedHashedCsrfToken = createHash('sha256').update(`${csrfKey}${csrfToken}`).digest('hex');
   if (expectedHashedCsrfToken !== hashedCsrfToken) {
+    clearCookie(res);
     return res.status(403).json({ message: 'valid csrf token not supplied' });
   }
 
