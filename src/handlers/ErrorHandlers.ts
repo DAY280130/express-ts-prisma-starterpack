@@ -2,7 +2,7 @@ import { ErrorResponse, logError } from '@src/helpers/HandlerHelpers.js';
 import { JsonWebTokenError } from '@src/helpers/JwtHelpers.js';
 import { MemcachedMethodError } from '@src/helpers/MemcachedHelpers.js';
 import { isPrismaError } from '@src/helpers/PrismaHelpers.js';
-import { Request, Response } from 'express';
+import { ErrorRequestHandler, Request, Response } from 'express';
 
 type ArbitraryObject = { [key: string]: unknown };
 
@@ -21,7 +21,13 @@ const isErrnoException = (error: unknown): error is NodeJS.ErrnoException => {
   );
 };
 
-const errorHandler = (error: NodeJS.ErrnoException | Error, req: Request, res: Response) => {
+const errorHandler: ErrorRequestHandler = (
+  error: NodeJS.ErrnoException | Error,
+  req: Request,
+  res: Response,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _next
+) => {
   // set response status code to 500
   res.status(500);
 

@@ -37,7 +37,6 @@ const port = parseInt(process.env.PORT || '0');
 if (port === 0) {
   throw new Error('PORT not defined. Please define port in environment variables');
 }
-
 app.listen(port, () => {
   if (process.env.NODE_ENV === 'development') {
     console.log(`Server started at http://localhost:${port}`);
