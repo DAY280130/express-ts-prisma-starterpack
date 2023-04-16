@@ -53,7 +53,7 @@ const sign = async <T extends SignParams['tokenType']>(
   }
 };
 
-type verifyParams =
+type VerifyParams =
   | {
       tokenType: 'ACCESS_TOKEN';
       token: string;
@@ -64,8 +64,8 @@ type verifyParams =
       token: string;
     };
 
-const verify = async <T extends verifyParams['tokenType']>(
-  ...args: Extract<verifyParams, { tokenType: T }> extends { csrfToken: string }
+const verify = async <T extends VerifyParams['tokenType']>(
+  ...args: Extract<VerifyParams, { tokenType: T }> extends { csrfToken: string }
     ? [tokenType: T, token: string, csrfToken: string]
     : [tokenType: T, token: string]
 ) => {
