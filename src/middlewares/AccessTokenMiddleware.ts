@@ -6,13 +6,14 @@ import { RequestHandler } from 'express';
 export const checkAccessToken: RequestHandler = async (req, res, next) => {
   try {
     // check access token presence in header
-    const accessTokenHeader = req.headers['Authorization'] as string;
+    const accessTokenHeader = req.headers['authorization'] as string;
     if (!accessTokenHeader) throw new Error(AuthErrorMessages.ACCESS_TOKEN_NOT_VALID_MESSAGE);
     const accessToken = accessTokenHeader.split(' ')[1];
     if (!accessToken) throw new Error(AuthErrorMessages.ACCESS_TOKEN_NOT_VALID_MESSAGE);
 
     // verify access token
-    await jwtPromisified.verify(accessToken);
+    const csrfToken = req.headers['x-csrf-token'] as string;
+    await jwtPromisified.verify('ACCESS_TOKEN', accessToken, csrfToken);
 
     // all check pass
     next();

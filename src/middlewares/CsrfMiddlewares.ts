@@ -88,7 +88,7 @@ export const checkAuthorizedCsrfToken: RequestHandler = async (req, res, next) =
     if (!refreshToken) throw new Error(AuthErrorMessages.REFRESH_TOKEN_NOT_VALID_MESSAGE);
 
     // check refresh token validity
-    await jwtPromisified.verify(refreshToken);
+    await jwtPromisified.verify('REFRESH_TOKEN', refreshToken);
 
     // get csrf key in cache
     const csrfKey = (await memcached.get(refreshToken)).result as string;

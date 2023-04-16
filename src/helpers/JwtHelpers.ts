@@ -7,7 +7,7 @@ import {
 } from '@src/configs/JwtConfigs.js';
 import jwt from 'jsonwebtoken';
 
-type signParams =
+type SignParams =
   | {
       tokenType: 'ACCESS_TOKEN';
       initialPayload: JWTPayload;
@@ -18,8 +18,8 @@ type signParams =
       initialPayload: JWTPayload;
     };
 
-const sign = async <T extends signParams['tokenType']>(
-  ...args: Extract<signParams, { tokenType: T }> extends { csrfToken: string }
+const sign = async <T extends SignParams['tokenType']>(
+  ...args: Extract<SignParams, { tokenType: T }> extends { csrfToken: string }
     ? [tokenType: T, initialPayload: JWTPayload, csrfToken: string]
     : [tokenType: T, initialPayload: JWTPayload]
 ) => {
@@ -53,9 +53,27 @@ const sign = async <T extends signParams['tokenType']>(
   }
 };
 
-const verify = async (token: string) =>
-  new Promise<JWTPayload>((resolve, reject) => {
-    jwt.verify(token, JWT_SECRET, verifyConfig, (error, payload) => {
+type verifyParams =
+  | {
+      tokenType: 'ACCESS_TOKEN';
+      token: string;
+      csrfToken: string;
+    }
+  | {
+      tokenType: 'REFRESH_TOKEN';
+      token: string;
+    };
+
+const verify = async <T extends verifyParams['tokenType']>(
+  ...args: Extract<verifyParams, { tokenType: T }> extends { csrfToken: string }
+    ? [tokenType: T, token: string, csrfToken: string]
+    : [tokenType: T, token: string]
+) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [_tokenType, token, csrfToken] = args;
+  const secret = `${JWT_SECRET}${csrfToken ? csrfToken : ''}`;
+  return new Promise<JWTPayload>((resolve, reject) => {
+    jwt.verify(token, secret, verifyConfig, (error, payload) => {
       if (error) {
         reject(error);
       } else {
@@ -63,6 +81,7 @@ const verify = async (token: string) =>
       }
     });
   });
+};
 
 const decode = async (token: string) =>
   new Promise<JWTPayload>((resolve, reject) => {

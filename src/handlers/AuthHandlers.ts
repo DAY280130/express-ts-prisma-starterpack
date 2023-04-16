@@ -65,7 +65,11 @@ const generateCsrfToken: RequestHandler = async (_req, res, next) => {
     res.cookie(csrfCookieName, hashedCsrfToken, cookieConfig);
 
     // send csrf token via response payload
-    return res.status(200).json({ csrfToken });
+    return res.status(200).json({
+      status: 'success',
+      message: 'anonymous csrf token generated successfully',
+      datas: [{ csrfToken }],
+    } satisfies SuccessResponse);
   } catch (error) {
     next(error);
   }
@@ -297,7 +301,7 @@ const checkSession: RequestHandler = async (req, res) => {
   const csrfToken = req.headers['x-csrf-token'] as string;
   const refreshToken = req.signedCookies[refreshCookieName];
   const csrfKey = (await memcached.get(refreshToken)).result as string;
-  const accessTokenHeader = req.headers['Authorization'] as string;
+  const accessTokenHeader = req.headers['authorization'] as string;
   const accessToken = accessTokenHeader.split(' ')[1];
   return res.status(200).json({
     status: 'success',
@@ -314,48 +318,26 @@ const checkSession: RequestHandler = async (req, res) => {
   } satisfies SuccessResponse);
 };
 
-// const checkCsrfToken: RequestHandler = async (req, res) => {
-//   const hashedCsrfToken = req.signedCookies[csrfCookieName];
-//   if (!hashedCsrfToken) {
-//     return res.status(403).json({ message: 'csrf cookie not found' });
-//   }
-
-//   const csrfToken = req.headers['x-csrf-token'] as string;
-//   if (!csrfToken) {
-//     return res.status(403).json({ message: 'csrf header not found' });
-//   }
-
-//   let csrfKey: string;
-//   try {
-//     csrfKey = (await memcached.get(csrfToken)).result as string;
-//   } catch (error) {
-//     if (error instanceof MemcachedMethodError) {
-//       if (error.message === 'cache miss') {
-//         return res.status(403).json({ message: 'csrf token not valid' });
-//       } else {
-//         return res.status(500).json({ message: 'memcached error', error });
-//       }
-//     }
-//     return res.status(500).json({ message: 'unknown error', error });
-//   }
-
-//   const expectedHashedCsrfToken = createHash('sha256').update(`${csrfKey}${csrfToken}`).digest('hex');
-
-//   if (expectedHashedCsrfToken !== hashedCsrfToken) {
-//     return res.status(403).json({ message: 'csrf token not valid' });
-//   }
-
-//   return res.status(200).json({
-//     message: 'CSRF token verified',
-//     csrfKey,
-//     csrfToken,
-//     hashedCsrfToken,
-//   });
-// };
+const checkToken: RequestHandler = async (req, res) => {
+  const hashedCsrfToken = req.signedCookies[csrfCookieName];
+  const csrfToken = req.headers['x-csrf-token'] as string;
+  const csrfKey = (await memcached.get(csrfToken)).result as string;
+  return res.status(200).json({
+    status: 'success',
+    message: 'csrf token ok!',
+    datas: [
+      {
+        csrfToken,
+        csrfKey,
+        hashedCsrfToken,
+      },
+    ],
+  } satisfies SuccessResponse);
+};
 
 export const authHandlers = {
   generateCsrfToken,
-  // checkCsrfToken,
+  checkToken,
   login,
   register,
   refresh,
