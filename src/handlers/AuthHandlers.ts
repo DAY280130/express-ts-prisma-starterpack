@@ -24,8 +24,7 @@ const scryptPromisified = async (password: BinaryLike, salt: BinaryLike, keylen:
 
 const PASSWORD_SECRET = process.env.PASSWORD_SECRET || 'super secret password';
 
-const userSchema = z.object({
-  id: z.string().uuid(),
+const userInputSchema = z.object({
   email: z
     .string({ required_error: 'email required' })
     .email({ message: 'email not valid' })
@@ -79,8 +78,7 @@ const generateCsrfToken: RequestHandler = async (_req, res, next) => {
 const register: RequestHandler = async (req, res, next) => {
   try {
     // parse request body
-    const bodySchema = userSchema.omit({ id: true });
-    const parsedBody = bodySchema.safeParse(req.body);
+    const parsedBody = userInputSchema.safeParse(req.body);
     if (!parsedBody.success) {
       return res.status(400).json({
         status: 'error',
@@ -179,7 +177,7 @@ const register: RequestHandler = async (req, res, next) => {
 const login: RequestHandler = async (req, res, next) => {
   try {
     // parse request body
-    const bodySchema = userSchema.pick({ email: true, password: true });
+    const bodySchema = userInputSchema.omit({ name: true });
     const parsedBody = bodySchema.safeParse(req.body);
     if (!parsedBody.success) {
       return res.status(400).json({
