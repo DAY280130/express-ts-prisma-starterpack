@@ -1,4 +1,5 @@
 import { cookieConfig, csrfCookieName, refreshCookieName } from '@src/configs/CookieConfigs.js';
+import { clearSession } from '@src/helpers/AuthHelpers.js';
 import { ErrorResponse, SuccessResponse, logError } from '@src/helpers/HandlerHelpers.js';
 import { jwtPromisified } from '@src/helpers/JwtHelpers.js';
 import { MemcachedMethodError, memcached } from '@src/helpers/MemcachedHelpers.js';
@@ -296,6 +297,15 @@ const refresh: RequestHandler = async (req, res, next) => {
   }
 };
 
+const logout: RequestHandler = async (req, res) => {
+  const refreshToken = req.signedCookies[refreshCookieName];
+  clearSession(res, refreshToken);
+  return res.status(200).json({
+    status: 'success',
+    message: 'logged out',
+  } satisfies SuccessResponse);
+};
+
 const checkSession: RequestHandler = async (req, res) => {
   const hashedCsrfToken = req.signedCookies[csrfCookieName];
   const csrfToken = req.headers['x-csrf-token'] as string;
@@ -341,5 +351,6 @@ export const authHandlers = {
   login,
   register,
   refresh,
+  logout,
   checkSession,
 };

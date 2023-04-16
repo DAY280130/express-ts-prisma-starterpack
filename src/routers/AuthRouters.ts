@@ -10,6 +10,7 @@ authRouters.get(`${BASE_ROUTE}/token`, authHandlers.generateCsrfToken);
 authRouters.post(`${BASE_ROUTE}/login`, checkAnonymousCsrfToken, authHandlers.login);
 authRouters.post(`${BASE_ROUTE}/register`, checkAnonymousCsrfToken, authHandlers.register);
 authRouters.post(`${BASE_ROUTE}/refresh`, checkAuthorizedCsrfToken, authHandlers.refresh);
+authRouters.post(`${BASE_ROUTE}/logout`, authHandlers.logout);
 
 // testing purpose only
 authRouters.get(`${BASE_ROUTE}/token/check`, checkAnonymousCsrfToken, authHandlers.checkToken);
