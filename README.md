@@ -4,33 +4,45 @@ This is my personal backend starterpack, but feel free to use it if you stumbled
 
 ## Core Dependency Used
 
-### 1. Express JS (Backend Framework)
+### 1. [Express JS][1] (Backend Framework)
 
 Widely known as a versatile and minimalist backend framework for nodejs.
 
-### 2. Prisma ORM (Database ORM)
+### 2. [Prisma ORM][2] (Database ORM)
 
 Used for connecting and working with main database(s), RDBMS or DDBMS(MongoDB only).
 
-### 3. Zod and Validator.js (Input Validation)
+### 3. [Zod][3] and [Validator.js][4] (Input Validation)
 
-Preventing ugly input validation codes.
+Preventing ugly input validation and sanitation codes.
 
-### 4. Memcached (Memcached Key-Value Database Connector)
+### 4. [Memcached][5] (Memcached Key-Value Database Connector)
 
 Memcached is used for caching and session store.
 
-### 5. Jsonwebtoken (JWT tools)
+### 5. [Jsonwebtoken][6] (JWT tools)
 
 For working with JWT.
 
-### 6. Dotenv-safe (Loading .env into environment variables)
+### 6. [Dotenv-safe][7] (Loading .env into environment variables)
 
 Making sure your .env contains all needed variables from .env.example and then load it to your environment.
 
-### 7. Cors, Helmet, Compression, and Cookie-parser (Parsing and Transforming Request)
+### 7. [Cors][8], [Helmet][9], [Compression][10], and [Cookie-parser][11] (Parsing and Transforming Request)
 
 Making sure requests are workable.
+
+[1](https://expressjs.com/)
+[2](https://www.prisma.io/)
+[3](https://zod.dev/)
+[4](https://github.com/validatorjs/validator.js#readme)
+[5](https://github.com/3rd-Eden/memcached#readme)
+[6](https://github.com/auth0/node-jsonwebtoken#readme)
+[7](https://github.com/rolodato/dotenv-safe#readme)
+[8](https://github.com/expressjs/cors#readme)
+[9](https://helmetjs.github.io/)
+[10](https://github.com/expressjs/compression#readme)
+[11](https://github.com/expressjs/cookie-parser#readme)
 
 ## How to Use
 
