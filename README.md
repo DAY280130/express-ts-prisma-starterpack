@@ -32,17 +32,17 @@ Making sure your .env contains all needed variables from .env.example and then l
 
 Making sure requests are workable.
 
-[1](https://expressjs.com/)
-[2](https://www.prisma.io/)
-[3](https://zod.dev/)
-[4](https://github.com/validatorjs/validator.js#readme)
-[5](https://github.com/3rd-Eden/memcached#readme)
-[6](https://github.com/auth0/node-jsonwebtoken#readme)
-[7](https://github.com/rolodato/dotenv-safe#readme)
-[8](https://github.com/expressjs/cors#readme)
-[9](https://helmetjs.github.io/)
-[10](https://github.com/expressjs/compression#readme)
-[11](https://github.com/expressjs/cookie-parser#readme)
+[1]: (https://expressjs.com/)
+[2]: (https://www.prisma.io/)
+[3]: (https://zod.dev/)
+[4]: (https://github.com/validatorjs/validator.js#readme)
+[5]: (https://github.com/3rd-Eden/memcached#readme)
+[6]: (https://github.com/auth0/node-jsonwebtoken#readme)
+[7]: (https://github.com/rolodato/dotenv-safe#readme)
+[8]: (https://github.com/expressjs/cors#readme)
+[9]: (https://helmetjs.github.io/)
+[10]: (https://github.com/expressjs/compression#readme)
+[11]: (https://github.com/expressjs/cookie-parser#readme)
 
 ## How to Use
 
