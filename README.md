@@ -32,7 +32,7 @@ Making sure your .env contains all needed variables from .env.example and then l
 
 Making sure requests are workable.
 
-[1]: (https://expressjs.com/)
+[1]: https://expressjs.com/
 [2]: (https://www.prisma.io/)
 [3]: (https://zod.dev/)
 [4]: (https://github.com/validatorjs/validator.js#readme)
