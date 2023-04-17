@@ -56,7 +56,7 @@ Make your own _.env_ file and make variables according to the _.env.example_, or
 
 ### 3. Edit Prisma Schema
 
-Edit the schema.prisma file to suit your needs. **DO NOT** delete the `User` model or _id_, _email_, _name_, and _password_ attributes in it. Well, you can delete _name_ but you have to edit a few codes in AuthHandlers.ts file later. Refer to this (link)[https://www.prisma.io/docs/concepts/components/prisma-schema "Prisma's official docs for schema"] for the details.
+Edit the schema.prisma file to suit your needs. **DO NOT** delete the `User` model or _id_, _email_, _name_, and _password_ attributes in it. Well, you can delete _name_ but you have to edit a few codes in AuthHandlers.ts file later. Refer to this [link](https://www.prisma.io/docs/concepts/components/prisma-schema "Prisma's official docs for schema") for the details.
 
 ### 4. Run Prisma Migrate
 
