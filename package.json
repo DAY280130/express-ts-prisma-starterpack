@@ -1,6 +1,6 @@
 {
   "name": "express-ts-prisma-starterpack",
-  "version": "0.0.2",
+  "version": "1.0.0",
   "description": "dimas's express, ts, and prisma project starterpack",
   "main": "./dist/index.js",
   "type": "module",
