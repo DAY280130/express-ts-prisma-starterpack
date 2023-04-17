@@ -8,27 +8,27 @@ This is my personal backend starterpack, but feel free to use it if you stumbled
 
 Widely known as a versatile and minimalist backend framework for nodejs.
 
-**2. [Prisma ORM][2] (Database ORM)**
+### 2. [Prisma ORM][2] (Database ORM)
 
 Used for connecting and working with main database(s), RDBMS or DDBMS(MongoDB only).
 
-**3. [Zod][3] and [Validator.js][4] (Input Validation)**
+### 3. [Zod][3] and [Validator.js][4] (Input Validation)
 
 Preventing ugly input validation and sanitation codes.
 
-**4. [Memcached][5] (Memcached Key-Value Database Connector)**
+### 4. [Memcached][5] (Memcached Key-Value Database Connector)
 
 Memcached is used for caching and session store.
 
-**5. [Jsonwebtoken][6] (JWT tools)**
+### 5. [Jsonwebtoken][6] (JWT tools)
 
 For working with JWT.
 
-**6. [Dotenv-safe][7] (Loading .env into environment variables)**
+### 6. [Dotenv-safe][7] (Loading .env into environment variables)
 
 Making sure your .env contains all needed variables from .env.example and then load it to your environment.
 
-**7. [Cors][8], [Helmet][9], [Compression][10], and [Cookie-parser][11] (Parsing and Transforming Request)**
+### 7. [Cors][8], [Helmet][9], [Compression][10], and [Cookie-parser][11] (Parsing and Transforming Request)
 
 Making sure requests are workable.
 
