@@ -4,7 +4,7 @@ This is my personal backend starterpack, but feel free to use it if you stumbled
 
 ## Core Dependency Used
 
-**1. [Express JS][1] (Backend Framework)**
+[**1. Express JS (Backend Framework)**][1]
 
 Widely known as a versatile and minimalist backend framework for nodejs.
 
