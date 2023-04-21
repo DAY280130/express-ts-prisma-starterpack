@@ -54,19 +54,19 @@ Install the packages with `npm install` or `npm i`
 
 Delete migration files that has already been created in `./prisma/migrations` folder. And then initialize your repository. If you are using git, just run `git init`.
 
-### 2. Make .env File
+### 3. Make .env File
 
 Make your own _.env_ file and make variables according to the _.env.example_, or just copy _.env.example_ into _.env_ with `cp .env.example .env`. Then, fill the variables according to your needs.
 
-### 3. Edit Prisma Schema
+### 4. Edit Prisma Schema
 
 Edit the schema.prisma file to suit your needs. **DO NOT** delete the `User` model or _id_, _email_, _name_, and _password_ fields in it. Well, you can delete _name_ field, but you have to edit a few codes in _AuthHandlers.ts_ file later. Refer to this [link](https://www.prisma.io/docs/concepts/components/prisma-schema "Prisma's official docs for schema") for the details.
 
-### 4. Run Prisma Migrate
+### 5. Run Prisma Migrate
 
 Migrate your prisma schema to your database with `npx prisma migrate dev` and generate your prisma client file with `npx prisma generate`. Make sure you already fill the _DATABASE_URL_ variable in the _.env_.
 
-### 5. Make Your Own Routes and Handlers
+### 6. Make Your Own Routes and Handlers
 
 Make your own routes and handlers by following the already written Auth Routes and Handlers. Make sure to use _checkAuthorizedCsrfToken_ and _checkAccessToken_ middlewares for your protected routes.
 
